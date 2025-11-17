@@ -61,6 +61,7 @@ The system uses six primary tables:
   * Database triggers are in place such that:
     - Upon inserts into the `documents` table, the new document id is also inserted into the `document_statuses` table with a default value of *pending*.
     - Upon inserts into the `document_contents` table, the corresponding document id in the `document_statuses` table has its status updated to *downloaded*. 
+<img width="1761" height="811" alt="doc_management_schema" src="https://github.com/user-attachments/assets/61d2c274-cf51-4278-8c68-a79ce92735bb" />
 
 ---
 
