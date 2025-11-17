@@ -34,9 +34,8 @@ The system automates the workflow of retrieving, organizing, and storing loan-re
   * Detailed success and error messages are provided for easier debugging and monitoring.
   * Logs are automatically archived, compressed and rotated daily. 
 
-<img width="1243" height="981" alt="save_metadata_screenshot" src="https://github.com/user-attachments/assets/d0261d65-3419-49ff-a41d-bcf252f63ea4" />
-<img width="1269" height="508" alt="failed_download_screenshot" src="https://github.com/user-attachments/assets/962c26b0-7c88-4231-9b6e-3aaab16fe2fd" />
 <img width="1260" height="618" alt="successful_download_screenshot" src="https://github.com/user-attachments/assets/2679a936-8125-40e5-9b17-fee2d52bd7f7" />
+<img width="1599" height="939" alt="metrics" src="https://github.com/user-attachments/assets/085144dd-1f66-4574-a15b-39b36defc4a5" />
 
 
 * **Notes**
