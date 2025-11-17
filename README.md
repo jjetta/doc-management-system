@@ -19,9 +19,12 @@ The system automates the workflow of retrieving, organizing, and storing loan-re
 
 * **Document Processing**
 
-  * Available documents are queried from an external API and stored in a database.
+  * Available documents are queried from an external API and stored in the database with a default status of `pending`.
   * Filenames are validated according to this convention: `loan_number-doctype-timestamp.pdf`.
   * Documents in the database are queued for download or further processing.
+  * Every hour, a cron job gets documents with a status of `pending` or `failed` and attempts to download them. (At most the top 100). 
+  * If a download succeeds, its blob content is saved in the database.
+  * If a download fails, its status is updated to `failed` and will be retried the next hour.
 
 * **Cron Job Automation**
 
