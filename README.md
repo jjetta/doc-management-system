@@ -50,7 +50,7 @@ The system automates the workflow of retrieving, organizing, and storing loan-re
 The system uses six primary tables:
 
 1. **`api_sessions`** – Tracks API sessions. (`session_id`, `created_at`)
-2. **`loans`** – Stores loan numbers. (`loan_id` and `loan_number`)
+2. **`loans`** – Stores loan numbers. (`loan_id`, `loan_number`)
 3. **`documents`** – Tracks documents associated with loans. (`document_id`, `loan_id`, `doctype_id`, `uploaded_at`, `file_name`)
 4. **`document_types`** – Stores unique document types. (`doctype_id`, `doctype`)
 5. **`document_contents`** - Stores the actual BLOB content of the pdfs. (`document_id`, `content`, `size`)
