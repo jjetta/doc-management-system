@@ -77,8 +77,8 @@ loan_number-doctype-timestamp.pdf
 * `doctype`: Type of document, may include numeric suffixes (e.g., `_1`).
 * `timestamp`: Time the file was generated.
 * `.pdf` extension is mandatory.
+* The system validates and normalizes these filenames before storing or processing them.
 
-The system validates and normalizes these filenames before storing or processing them.
 <img width="1817" height="840" alt="query_files_screenshot" src="https://github.com/user-attachments/assets/b053aadc-2d21-431c-85cb-16a8c1e20e3b" />
 ---
 
