@@ -45,7 +45,7 @@ foreach ($pending_docs as $document_id => $filename) {
         $failed++;
         mark_as_failed($dblink, $document_id);
 
-        if ($mime === "application/json") {
+        if ($mime === "application/json") { //if we're getting json back from the api, we likely need to create another session
             log_message("[INFO] Detected possible session expiration. Attempting to reconnect...");
             $retry = reconnect($dblink);
 

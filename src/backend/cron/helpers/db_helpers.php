@@ -188,6 +188,7 @@ function get_pending_docs($dblink) {
         $result = $select_stmt->get_result();
         if (!$result) {
             log_message("[DB ERROR][get_pending_docs] Failed to get result - " . $dblink->error);
+            return null;
         }
 
         $pending_docs = [];
@@ -202,6 +203,35 @@ function get_pending_docs($dblink) {
     } finally {
         $select_stmt->close();
     }
+}
+
+function get_current_loans($dblink) {
+    $select_query = 'SELECT loan_number FROM loans';
+    $select_stmt = $dblink->prepare($select_query);
+    if (!$select_stmt) {
+        log_message("[DB ERROR][get_all_loans] Failed to prepare SELECT statement - " . $dblink->error);
+        return null;
+    }
+
+    try {
+        if (!$select_stmt->execute()) {
+            log_message("[DB ERROR][get_all_loans] Failed to execute SELECT statement - " . $dblink->error);
+            return null;
+        }
+
+        $loan_number = null;
+        $select_stmt->bind_result($loan_number);
+
+        $loans = [];
+        while ($select_stmt->fetch()) {
+            $loans[] = $loan_number;
+        }
+
+        return $loans;
+    } finally {
+        $select_stmt->close();
+    }
+
 }
 
 function mark_as_failed($dblink, $document_id) {

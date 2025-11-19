@@ -4,26 +4,46 @@ require_once __DIR__ . '/../../config/db.php';
 
 $script_name = basename(__FILE__);
 
-function generate_files($response_info) {
-    log_message("Generating files...");
+function parse_file_list($response) {
+    log_message("Parsing files...");
 
-    $tmp = explode(":", $response_info[1]);
+    $tmp = explode(":", $response[1]);
     $files = json_decode($tmp[1]);
 
     if (json_last_error() !== JSON_ERROR_NONE) {
-        log_message("ERROR: Failed to decode file list. JSON error: " . json_last_error_msg());
+        log_message("[ERROR] Failed to decode file list. JSON error: " . json_last_error_msg());
         return [];
     }
 
     if (empty($files)) {
         log_message("[query_files] No files returned by API");
     } else {
-        log_message("[INFO]: Number of files received: " . count($files));
+        log_message("[INFO] Number of files received: " . count($files));
     }
 
-    log_message("[INFO]: Files received: " . print_r($files, true));
+    log_message("[INFO] Files received: " . print_r($files, true));
 
     return $files;
+}
+
+function parse_loan_list($response) {
+    log_message("Parsing loan IDs...");
+
+    $tmp = explode(":", $response[1]);
+    $loans = json_decode($tmp[1]);
+
+    if (json_last_error() !== JSON_ERROR_NONE) {
+        log_message("[ERROR] Failed to decode loan list. JSON error: " . json_last_error_msg());
+        return [];
+    }
+
+    if (empty($loans)) {
+        log_message("[INFO] No loans returned by API");
+    } else {
+        log_message("[INFO] Total loan count: " . count($loans));
+    }
+
+    return $loans;
 }
 
 function get_doctype_from_filename($doctype) {

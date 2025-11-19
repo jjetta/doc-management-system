@@ -9,20 +9,20 @@ $script_name = basename(__FILE__);
 
 $dblink = get_dblink();
 
-$sid = get_session($dblink);
 $username = getenv('API_USER');
-$password = getenv('API_PASS');
+$sid = get_session($dblink); // sid = session id
+
 $data = http_build_query([
     'uid' => $username,
     'sid' => $sid
 ]);
 
-$query_files_response = api_call('query_files', $data);
+$response = api_call('query_files', $data);
 
-// retry in the event our sid got kicked or a timeout
-if (!$query_files_response || 
-    !is_array($query_files_response) || 
-    $query_files_response[1] === 'MSG: SID not found') {
+// retry in the event our session_id got kicked or a timeout
+if (!$response || 
+    !is_array($response) || 
+    $response[1] === 'MSG: SID not found') {
     $retry = reconnect($dblink);
 
     if ($retry['success']) {
@@ -35,18 +35,18 @@ if (!$query_files_response ||
         'sid' => $sid
     ]);
 
-    $query_files_response = api_call('query_files', $data);
+    $response = api_call('query_files', $data);
 }
 
 // if there's no files, just exit
-if ($query_files_response[1] === 'MSG: No new files found' || $query_files_response[1] === 'MSG: []') {
+if ($response[1] === 'MSG: No new files found' || $response[1] === 'MSG: []') {
     log_message("[INFO] No files to query. Moving along.");
     echo str_repeat("-", 100) . "\n";
     exit(0);
 }
 
-if ($query_files_response[0] === 'Status: OK') {
-    $files = generate_files($query_files_response);
+if ($response[0] === 'Status: OK') {
+    $files = parse_file_list($response);
 } else {
     log_message("[ERROR] API returned unexpected status or format.");
     exit(1);
@@ -57,12 +57,12 @@ foreach ($files as $file) {
     $file_parts = explode('-', $file);
 
     // Validate filename format and type
-    if (count($file_parts) !== 3 || !str_ends_with($file, 'pdf')) {
+    if (count($file_parts) !== 3 || !str_ends_with($file, '.pdf')) {
         log_message("Skipping invalid filename: $file");
         continue;
     }
 
-    list($loan_number, $docname, $timestamp) = $file_parts;
+    [$loan_number, $docname, $timestamp] = $file_parts;
 
     // Update document_types table if necessary
     $doctype_id = get_or_create_doctype($dblink, $docname);
@@ -71,6 +71,7 @@ foreach ($files as $file) {
     $loan_id = get_or_create_loan($dblink, $loan_number);
     if ($loan_id === null) {
         log_message("[ERROR] Could not ensure loan exists for $loan_number");
+        continue;
     }
 
     // prepare the timestamp for insertion into the db

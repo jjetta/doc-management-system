@@ -53,14 +53,39 @@ function api_call($endpoint, $data, $octet = false) {
     return $response_info;
 }
 
-function reconnect($dblink) {
-
-    $username = getenv('API_USER');
-    $password = getenv('API_PASS');
+function create_session($dblink) {
 
     $data = http_build_query([
-        'username' => $username,
-        'password' => $password
+        'username' => getenv('API_USER'),
+        'password' => getenv('API_PASS')
+    ]);
+
+    $response = api_call('create_session', $data);
+
+    if ($response[0] !== "Status: OK") {
+        log_message("Failed to create session. $response[2]");
+
+        if ($response[1] === "MSG: Previous Session Found" || $response[1] === "MSG: SID not found") {
+            api_call('clear_session', $data);
+
+            log_message("[RETRY] Retrying create_session...");
+            $response = api_call('create_session', $data);
+        }
+    }
+
+    // Happy path at the bottom
+    if ($response[0] === "Status: OK") {
+        db_save_session($dblink, $response[2]);
+    } else {
+        log_message("[FATAL] Session creation ultimately failed.");
+    }
+}
+
+function reconnect($dblink) {
+
+    $data = http_build_query([
+        'username' => getenv('API_USER'),
+        'password' => getenv('API_PASS')
     ]);
 
     //clear session

@@ -3,6 +3,8 @@ require_once __DIR__ . '/../backend/cron/helpers/db_helpers.php';
 require_once __DIR__ . '/../backend/cron/helpers/file_helpers.php';
 require_once __DIR__ . '/../backend/config/db.php';
 
+$script_name = basename(__FILE__);
+
 $dblink = get_dblink();
 
 $query = "SELECT doctype FROM document_types ORDER BY doctype ASC";

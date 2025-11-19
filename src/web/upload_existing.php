@@ -3,9 +3,11 @@ require_once __DIR__ . '/../backend/cron/helpers/db_helpers.php';
 require_once __DIR__ . '/../backend/cron/helpers/file_helpers.php';
 require_once __DIR__ . '/../backend/config/db.php';
 
+$script_name = basename(__FILE__);
+
 $dblink = get_dblink();
 
-$loan_query = "SELECT loan_number FROM loans ORDER BY loan_id ASC";
+$loan_query = "SELECT loan_number FROM loans";
 $loan_result = $dblink->query($loan_query) or die("Query failed: " . $dblink->error);
 
 $doc_query = "SELECT doctype FROM document_types ORDER BY doctype ASC";
