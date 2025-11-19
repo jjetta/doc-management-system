@@ -19,9 +19,12 @@ The system automates the workflow of retrieving, organizing, and storing loan-re
 
 * **Document Processing**
 
-  * Available documents are queried from an external API and stored in a database.
+  * Available documents are queried from an external API and stored in the database with a default status of `pending`.
   * Filenames are validated according to this convention: `loan_number-doctype-timestamp.pdf`.
   * Documents in the database are queued for download or further processing.
+  * Every hour, a cron job gets documents with a status of `pending` or `failed` and attempts to download them. (At most the top 100). 
+  * If a download succeeds, its blob content is saved in the database.
+  * If a download fails, its status is updated to `failed` and will be retried the next hour.
 
 * **Cron Job Automation**
 
@@ -33,6 +36,9 @@ The system automates the workflow of retrieving, organizing, and storing loan-re
   * Every API interaction, database operation, and document processing step is logged.
   * Detailed success and error messages are provided for easier debugging and monitoring.
   * Logs are automatically archived, compressed and rotated daily. 
+
+<img width="1260" height="618" alt="successful_download_screenshot" src="https://github.com/user-attachments/assets/2679a936-8125-40e5-9b17-fee2d52bd7f7" />
+<img width="1599" height="939" alt="metrics" src="https://github.com/user-attachments/assets/085144dd-1f66-4574-a15b-39b36defc4a5" />
 
 
 * **Notes**
@@ -46,7 +52,7 @@ The system automates the workflow of retrieving, organizing, and storing loan-re
 The system uses six primary tables:
 
 1. **`api_sessions`** – Tracks API sessions. (`session_id`, `created_at`)
-2. **`loans`** – Stores loan numbers. (`loan_id` and `loan_number`)
+2. **`loans`** – Stores loan numbers. (`loan_id`, `loan_number`)
 3. **`documents`** – Tracks documents associated with loans. (`document_id`, `loan_id`, `doctype_id`, `uploaded_at`, `file_name`)
 4. **`document_types`** – Stores unique document types. (`doctype_id`, `doctype`)
 5. **`document_contents`** - Stores the actual BLOB content of the pdfs. (`document_id`, `content`, `size`)
@@ -57,6 +63,7 @@ The system uses six primary tables:
   * Database triggers are in place such that:
     - Upon inserts into the `documents` table, the new document id is also inserted into the `document_statuses` table with a default value of *pending*.
     - Upon inserts into the `document_contents` table, the corresponding document id in the `document_statuses` table has its status updated to *downloaded*. 
+<img width="1761" height="811" alt="doc_management_schema" src="https://github.com/user-attachments/assets/61d2c274-cf51-4278-8c68-a79ce92735bb" />
 
 ---
 
@@ -72,9 +79,9 @@ loan_number-doctype-timestamp.pdf
 * `doctype`: Type of document, may include numeric suffixes (e.g., `_1`).
 * `timestamp`: Time the file was generated.
 * `.pdf` extension is mandatory.
+* The system validates and normalizes these filenames before storing or processing them.
 
-The system validates and normalizes these filenames before storing or processing them.
-
+<img width="1817" height="840" alt="query_files_screenshot" src="https://github.com/user-attachments/assets/b053aadc-2d21-431c-85cb-16a8c1e20e3b" />
 ---
 
 ## What I Learned
