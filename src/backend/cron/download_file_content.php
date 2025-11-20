@@ -36,7 +36,7 @@ foreach ($pending_docs as $document_id => $filename) {
         'fid' => $filename
     ]);
 
-    $content = api_call('request_file', $data, true);
+    $content = api_call('request_file', $data, octet: true);
     $mime = $content ? get_mime_type($content) : '';
 
     if (!$content || $mime !== "application/pdf") {

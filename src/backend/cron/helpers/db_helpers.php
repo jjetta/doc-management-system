@@ -205,6 +205,47 @@ function get_pending_docs($dblink) {
     }
 }
 
+function get_current_docs($dblink) {
+
+    $select_query = "
+        SELECT d.document_id, l.loan_number, d.doc_name, d.uploaded_at
+        FROM documents d
+        JOIN loans l ON d.loan_id = l.loan_id
+        ORDER BY d.document_id
+    ";
+
+    $select_stmt = $dblink->prepare($select_query);
+    if (!$select_stmt) {
+        log_message("[DB ERROR][get_current_docs] Failed to prepare SELECT - " . $dblink->error);
+        return null;
+    }
+
+    try {
+        if (!$select_stmt->execute()) {
+            log_message("[DB ERROR][get_current_docs] Failed to execute SELECT statement - " . $dblink->error);
+            return null;
+        }
+
+        $result = $select_stmt->get_result();
+        if (!$result) {
+            log_message("[DB ERROR][get_current_docs] Failed to get result - " . $dblink->error);
+            return null;
+        }
+
+        $current_docs = [];
+        while ($row = $result->fetch_assoc()) {
+            $uploaded_at = date('Ymd_H_i_s', strtotime($row['uploaded_at']));
+            $filename = "{$row['loan_number']}-{$row['doc_name']}-{$uploaded_at}.pdf";
+            $current_docs[$row['document_id']] = $filename ;
+        }
+
+        return $current_docs;
+
+    } finally {
+        $select_stmt->close();
+    }
+}
+
 function get_current_loans($dblink) {
     $select_query = 'SELECT loan_number FROM loans';
     $select_stmt = $dblink->prepare($select_query);

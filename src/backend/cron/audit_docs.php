@@ -17,7 +17,7 @@ $data = http_build_query([
     'sid' => $sid
 ]);
 
-$response = api_call('request_all_loans', $data, audit: true);
+$response = api_call('request_all_documents', $data, audit: true);
 
 if (!$response ||
     !is_array($response) ||
@@ -25,7 +25,7 @@ if (!$response ||
     $retry = reconnect($dblink);
 
     if ($retry['success']) {
-        log_message("[INFO] Retrying request_all_loans...");
+        log_message("[INFO] Retrying request_all_documents...");
         $sid = $retry['sid'];
     }
 
@@ -34,28 +34,29 @@ if (!$response ||
         'sid' => $sid
     ]);
 
-    $response = api_call('request_all_loans', $data, audit: true);
+    $response = api_call('request_all_documents', $data, audit: true);
 }
 
+$all_generated_docs = parse_file_list($response);
+$current_docs = get_current_docs($dblink);
 
-$all_generated_loans = parse_loan_list($response);
-$current_loans = get_current_loans($dblink);
+$missing_docs = array_diff($all_generated_docs, $current_docs);
 
-$missing_loans = array_diff($all_generated_loans, $current_loans);
+if (!empty($missing_docs)) {
+    $found_docs = 0;
+    log_message("Number of missing docs: " . count($missing_docs));
+    log_message("Missing docs: " . print_r($missing_docs, true));
 
-if (!empty($missing_loans)) {
-    $found_loans = 0;
-    log_message("Number of missing loans: " . count($missing_loans));
-    log_message("Missing loans: " . print_r($missing_loans, true));
-
-    foreach ($missing_loans as $loan_number) {
+    foreach ($missing_docs as $loan_number) {
         if (get_or_create_loan($dblink, $loan_number) != null) {
-            $found_loans++;
+            $found_docs++;
         };
     }
 
 } else {
-    log_message("You're up to date on loans. All good!");
+    log_message("You're up to date on docs. All good!");
 }
+
+log_message("Number of all generated docs: " . count($all_generated_docs));
 
 echo str_repeat("-", 100) . "\n";

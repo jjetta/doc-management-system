@@ -20,15 +20,17 @@
         <h3>Document Management System</h3>
         <hr>
         <div class="col-md-12">
-    <div class="panel panel-primary">
-        <div class="panel-heading">Upload Main Menu</div>
-        <div class="panel-body">
-            <div class="alert alert-info"><a href="upload_new.php">Upload New Loan</a>
+            <div class="panel panel-primary">
+                <div class="panel-heading">Search Main Menu</div>
+                <div class="panel-body">
+                    <div class="alert alert-info">
+                        <a href="search_doctype.php">Search by Document Type</a>
+                    </div>
+                    <div class="alert alert-info">
+                        <a href="search_loan_id.php">Search by Loan ID</a>
+                    </div>
+                </div>
             </div>
-            <div class="alert alert-info"><a href="upload_existing.php">Upload Existing Loan</a>
-            </div>
-        </div>
-    </div>
         </div>
     </div>
 </body>

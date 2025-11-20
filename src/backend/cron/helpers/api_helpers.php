@@ -9,7 +9,7 @@ $script_name = basename(__FILE__);
 
 $dblink = get_dblink();
 
-function api_call($endpoint, $data, $octet = false) {
+function api_call($endpoint, $data, $octet = false, $audit = false) {
     log_message("Calling endpoint: " . API_URL . $endpoint);
 
     $ch = curl_init(API_URL . $endpoint);
@@ -42,6 +42,13 @@ function api_call($endpoint, $data, $octet = false) {
     if (json_last_error() !== JSON_ERROR_NONE) {
         log_message("Invalid JSON response: " . json_last_error_msg());
         return false;
+    }
+
+    if ($audit) {
+        log_message("[API RESPONSE]");
+        log_message($response_info[0]);
+        echo str_repeat("-", 100) . "\n";
+        return $response_info;
     }
 
     log_message("[API RESPONSE]");
