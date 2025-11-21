@@ -205,6 +205,101 @@ function get_pending_docs($dblink) {
     }
 }
 
+function get_by_loan_id($dblink, $loan_id) {
+
+    $select_query = "
+        SELECT l.loan_number, d.doc_name, d.uploaded_at
+        FROM documents d
+        JOIN loans l ON d.loan_id = l.loan_id
+        WHERE l.loan_number = ?
+        ORDER BY d.document_id
+    ";
+
+    $select_stmt = $dblink->prepare($select_query);
+    if (!$select_stmt) {
+        log_message("[DB ERROR][get_by_loan_id] Failed to prepare SELECT - " . $dblink->error);
+        return null;
+    }
+
+    try {
+        $select_stmt->bind_param('i', $loan_id);
+        if (!$select_stmt->execute()) {
+            log_message("[DB ERROR][get_by_loan_id] Failed to execute SELECT statement - " . $dblink->error);
+            return null;
+        }
+
+        $result = $select_stmt->get_result();
+        if (!$result) {
+            log_message("[DB ERROR][get_by_loan_id] Failed to get result - " . $dblink->error);
+            return null;
+        }
+
+        $docs = [];
+        while ($row = $result->fetch_assoc()) {
+            $uploaded_at = date('Ymd_H_i_s', strtotime($row['uploaded_at']));
+            $filename = "{$row['loan_number']}-{$row['doc_name']}-{$uploaded_at}.pdf";
+            $docs[] = $filename ;
+        }
+
+        return $docs;
+
+    } finally {
+        $select_stmt->close();
+    }
+}
+
+function get_by_doctype($dblink, $doctype_id) {
+
+    $select_query = "
+        SELECT
+            l.loan_number,
+            CONCAT(l.loan_number, '-', d.doc_name, '-', DATE_FORMAT(d.uploaded_at, '%Y%m%d_%H_%i_%s'), '.pdf') AS filename,
+            dc.size,
+            dt.doctype,
+            dal.last_accessed_at
+        FROM documents d
+        JOIN loans l ON d.loan_id = l.loan_id
+        JOIN document_types dt ON d.doctype_id = dt.doctype_id
+        LEFT JOIN document_contents dc ON d.document_id = dc.document_id 
+        LEFT JOIN document_access_log dal ON d.document_id = dal.document_id
+        WHERE dt.doctype_id = ?
+        ORDER BY d.document_id
+    ";
+
+    $select_stmt = $dblink->prepare($select_query);
+    if (!$select_stmt) {
+        log_message("[DB ERROR][get_by_doctype_id] Failed to prepare SELECT - " . $dblink->error);
+        return null;
+    }
+
+    try {
+        $select_stmt->bind_param('i', $doctype_id);
+        if (!$select_stmt->execute()) {
+            log_message("[DB ERROR][get_by_doctype_id] Failed to execute SELECT statement - " . $dblink->error);
+            return null;
+        }
+
+        $result = $select_stmt->get_result();
+        if (!$result) {
+            log_message("[DB ERROR][get_by_doctype_id] Failed to get result - " . $dblink->error);
+            return null;
+        }
+
+        $documents = [];
+        while ($row = $result->fetch_assoc()) {
+            $documents[] = $row;
+        }
+
+        if ($result) {
+            $result->free();
+        }
+
+        return $documents;
+    } finally {
+        $select_stmt->close();
+    }
+}
+
 function get_current_docs($dblink) {
 
     $select_query = "

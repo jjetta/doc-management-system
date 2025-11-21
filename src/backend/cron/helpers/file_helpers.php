@@ -4,7 +4,7 @@ require_once __DIR__ . '/../../config/db.php';
 
 $script_name = basename(__FILE__);
 
-function parse_file_list($response) {
+function parse_file_list($response, $audit = false) {
     log_message("Parsing files...");
 
     $tmp = explode(":", $response[1]);
@@ -21,12 +21,16 @@ function parse_file_list($response) {
         log_message("[INFO] Number of files received: " . count($files));
     }
 
-    log_message("[INFO] Files received: " . print_r($files, true));
+    if (!$audit) {
+        log_message("[INFO] Files received: " . print_r($files, true));
+    } else {
+        audit_message("All generated docs: " . print_r($files, true), docs: true);
+    }
 
     return $files;
 }
 
-function parse_loan_list($response) {
+function parse_loan_list($response) { // this function is strictly for auditing (making sure i'm not missing any docs)
     log_message("Parsing loan IDs...");
 
     $tmp = explode(":", $response[1]);
@@ -42,6 +46,8 @@ function parse_loan_list($response) {
     } else {
         log_message("[INFO] Total loan count: " . count($loans));
     }
+
+    audit_message("All generated loans: " . print_r($loans, true), loans: true);
 
     return $loans;
 }

@@ -37,26 +37,25 @@ if (!$response ||
     $response = api_call('request_all_documents', $data, audit: true);
 }
 
-$all_generated_docs = parse_file_list($response);
-$current_docs = get_current_docs($dblink);
+$all_generated_docs = parse_file_list($response, audit: true);
+/* $current_docs = get_current_docs($dblink); */
 
-$missing_docs = array_diff($all_generated_docs, $current_docs);
 
-if (!empty($missing_docs)) {
-    $found_docs = 0;
-    log_message("Number of missing docs: " . count($missing_docs));
-    log_message("Missing docs: " . print_r($missing_docs, true));
+/* $missing_docs = array_diff($all_generated_docs, $current_docs); */
 
-    foreach ($missing_docs as $loan_number) {
-        if (get_or_create_loan($dblink, $loan_number) != null) {
-            $found_docs++;
-        };
-    }
-
-} else {
-    log_message("You're up to date on docs. All good!");
-}
-
-log_message("Number of all generated docs: " . count($all_generated_docs));
+/* if (!empty($missing_docs)) { */
+/*     $found_docs = 0; */
+/*     log_message("Number of missing docs: " . count($missing_docs)); */
+/*     log_message("Missing docs: " . print_r($missing_docs, true)); */
+/**/
+/*     foreach ($missing_docs as $loan_number) { */
+/*         if (get_or_create_loan($dblink, $loan_number) != null) { */
+/*             $found_docs++; */
+/*         }; */
+/*     } */
+/**/
+/* } else { */
+/*     log_message("You're up to date on docs. All good!"); */
+/* } */
 
 echo str_repeat("-", 100) . "\n";
