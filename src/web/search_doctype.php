@@ -85,7 +85,7 @@ $dblink = get_dblink();
                                     echo '<td>'.$data['filename'].'</td>';
                                     echo '<td>'.$data['size'].'</td>';
                                     echo '<td>'.$data['doctype'].'</td>';
-                                    echo '<td>'.$data['last_accessed_at'].'</td>';
+                                    echo '<td>'. (isset($data['last_accessed_at']) ? $data['last_accessed_at'] : 'N/A') .'</td>';
                                     echo '<td><a href="search_view.php?fid='.$data['document_id'].'">View</a></td>';
                                     echo '</tr>';
                                 }

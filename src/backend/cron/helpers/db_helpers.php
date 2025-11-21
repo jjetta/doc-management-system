@@ -361,7 +361,56 @@ function get_by_doctype($dblink, $doctype_id) {
     }
 }
 
-function get_current_docs($dblink) {
+function get_all_docs($dblink) {
+
+    $select_query = "
+        SELECT
+            d.document_id,
+            l.loan_number,
+            d.doc_name,
+            d.uploaded_at,
+            dc.size,
+            dt.doctype,
+            dal.last_accessed_at
+        FROM documents d
+        JOIN loans l ON d.loan_id = l.loan_id
+        JOIN document_types dt ON d.doctype_id = dt.doctype_id
+        LEFT JOIN document_contents dc ON d.document_id = dc.document_id 
+        LEFT JOIN document_access_log dal ON d.document_id = dal.document_id
+    ";
+
+    $select_stmt = $dblink->prepare($select_query);
+    if (!$select_stmt) {
+        log_message("[DB ERROR][get_all_docs] Failed to prepare SELECT - " . $dblink->error);
+        return null;
+    }
+
+    try {
+        if (!$select_stmt->execute()) {
+            log_message("[DB ERROR][get_all_docs] Failed to execute SELECT statement - " . $dblink->error);
+            return null;
+        }
+
+        $result = $select_stmt->get_result();
+        if (!$result) {
+            log_message("[DB ERROR][get_all_docs] Failed to get result - " . $dblink->error);
+            return null;
+        }
+
+        $docs = $result->fetch_all(MYSQLI_ASSOC);
+
+        if ($result) {
+            $result->free();
+        }
+
+        return $docs;
+
+    } finally {
+        $select_stmt->close();
+    }
+}
+
+function get_current_docs($dblink) { // for auditing
 
     $select_query = "
         SELECT d.document_id, l.loan_number, d.doc_name, d.uploaded_at
@@ -402,7 +451,7 @@ function get_current_docs($dblink) {
     }
 }
 
-function get_current_loans($dblink) {
+function get_current_loans($dblink) { // for auditing
     $select_query = 'SELECT loan_number FROM loans';
     $select_stmt = $dblink->prepare($select_query);
     if (!$select_stmt) {
