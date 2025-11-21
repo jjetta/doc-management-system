@@ -30,25 +30,25 @@ $dblink = get_dblink();
         <hr>
         <div class="col-md-12">
             <div class="panel panel-primary">
-                <div class="panel-heading">Search by Loan Number</div>
+                <div class="panel-heading">Search by Date</div>
                 <div class="panel-body">
                     <form method="post" action="">
                         <div class="form-group">
-                            <label class="control-label">Enter a Loan Number:</label>
-                            <input type="text" name="loan_number" class="form-control">
+                            <label class="control-label">Enter Two Dates</label>
+                            <h5>Date One</h5>
+                            <input type="date" name="date1" class="form-control">
+                            <h5>Date Two</h5>
+                            <input type="date" name="date2" class="form-control">
                         </div>
                         <div class="form-group">
                             <button type="submit" name="submit" value="submit" class="btn btn-success">Submit</button>
                     </form>
                     <?php 
                         if (isset($_POST['submit']) && $_POST['submit'] === 'submit') {
-                            $loan_number = trim($_POST['loan_number']);
+                            $date1 = $_POST['date1'];
+                            $date2 = $_POST['date2'];
 
-                            if (ctype_digit($loan_number) && strlen($loan_number) == 9) {
-                                $documents = get_by_loan_number($dblink, $loan_number);
-                            } else {
-                                echo '<span class="help-block">Loan numbers must ONLY contain digits and be EXACTLY 9 digits long</span>';
-                            }
+                            $documents = get_by_date($dblink, $date1, $date2);
 
                             echo '<hr>';
                             echo '<table class="table table-striped">';

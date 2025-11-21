@@ -77,6 +77,9 @@ $dblink = get_dblink();
                             echo '<tbody>';
                             if (is_array($documents) && count($documents) > 0) {
                                 foreach ($documents as $data) {
+                                    $timestamp = date('Ymd_H_i_s', strtotime($data['uploaded_at']));
+                                    $filename = "{$data['loan_number']}-{$data['doc_name']}-$timestamp.pdf";
+
                                     echo '<tr>';
                                     echo '<td>'.$data['loan_number'].'</td>';
                                     echo '<td>'.$data['filename'].'</td>';

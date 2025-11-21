@@ -166,7 +166,9 @@ function get_pending_docs($dblink) {
     $select_query = "
         SELECT 
             d.document_id, 
-            CONCAT(l.loan_number, '-', d.doc_name, '-', DATE_FORMAT(d.uploaded_at, '%Y%m%d_%H_%i_%s'), '.pdf') AS filename
+            l.loan_number,
+            d.doc_name,
+            d.uploaded_at
         FROM documents d
         JOIN loans l ON d.loan_id = l.loan_id
         JOIN document_statuses s ON d.document_id = s.document_id
@@ -195,7 +197,9 @@ function get_pending_docs($dblink) {
 
         $pending_docs = [];
         while ($row = $result->fetch_assoc()) {
-            $pending_docs[$row['document_id']] = $row['filename'] ;
+            $timestamp = date('Ymd_H_i_s', strtotime($row['uploaded_at']));
+            $filename = "{$row['loan_number']}-{$row['doc_name']}-$timestamp.pdf";
+            $pending_docs[$row['document_id']] = $filename;
         }
 
         return $pending_docs;
@@ -211,7 +215,8 @@ function get_by_loan_number($dblink, $loan_number) {
         SELECT
             d.document_id,
             l.loan_number,
-            CONCAT(l.loan_number, '-', d.doc_name, '-', DATE_FORMAT(d.uploaded_at, '%Y%m%d_%H_%i_%s'), '.pdf') AS filename,
+            d.doc_name,
+            d.uploaded_at,
             dc.size,
             dt.doctype,
             dal.last_accessed_at
@@ -221,7 +226,6 @@ function get_by_loan_number($dblink, $loan_number) {
         LEFT JOIN document_contents dc ON d.document_id = dc.document_id 
         LEFT JOIN document_access_log dal ON d.document_id = dal.document_id
         WHERE l.loan_number = ?
-        ORDER BY d.document_id
     ";
 
     $select_stmt = $dblink->prepare($select_query);
@@ -243,10 +247,7 @@ function get_by_loan_number($dblink, $loan_number) {
             return null;
         }
 
-        $docs = [];
-        while ($row = $result->fetch_assoc()) {
-            $docs[] = $row;
-        }
+        $docs = $result->fetch_all(MYSQLI_ASSOC);
 
         if ($result) {
             $result->free();
@@ -259,13 +260,64 @@ function get_by_loan_number($dblink, $loan_number) {
     }
 }
 
+function get_by_date($dblink, $date1, $date2) {
+    $query = "
+        SELECT
+            d.document_id,
+            l.loan_number,
+            d.doc_name,
+            d.uploaded_at,
+            dc.size,
+            dt.doctype,
+            dal.last_accessed_at
+        FROM documents d
+        JOIN loans l ON d.loan_id = l.loan_id
+        JOIN document_types dt ON d.doctype_id = dt.doctype_id
+        LEFT JOIN document_contents dc ON d.document_id = dc.document_id 
+        LEFT JOIN document_access_log dal ON d.document_id = dal.document_id
+        WHERE d.uploaded_at BETWEEN ? AND ?
+    ";
+
+    $stmt = $dblink->prepare($query);
+    if (!$stmt) {
+        log_message("[DB ERROR][get_by_date] Failed to prepare statement - " . $dblink->error);
+        return null;
+    }
+
+    try {
+        $stmt->bind_param('ss', $date1, $date2);
+        if (!$stmt->execute()) {
+            log_message("[DB ERROR][get_by_date] Failed to execute SELECT statement - " . $dblink->error);
+            return null;
+        }
+
+        $result = $stmt->get_result();
+        if (!$result) {
+            log_message("[DB ERROR][get_by_date] Failed to get result - " . $dblink->error);
+            return null;
+        }
+
+        $docs = $result->fetch_all(MYSQLI_ASSOC);
+
+        if ($result) {
+            $result->free();
+        }
+
+        return $docs;
+
+    } finally {
+        $stmt->close();
+    }
+}
+
 function get_by_doctype($dblink, $doctype_id) {
 
     $select_query = "
         SELECT
             d.document_id,
             l.loan_number,
-            CONCAT(l.loan_number, '-', d.doc_name, '-', DATE_FORMAT(d.uploaded_at, '%Y%m%d_%H_%i_%s'), '.pdf') AS filename,
+            d.doc_name,
+            d.uploaded_at,
             dc.size,
             dt.doctype,
             dal.last_accessed_at
@@ -275,7 +327,6 @@ function get_by_doctype($dblink, $doctype_id) {
         LEFT JOIN document_contents dc ON d.document_id = dc.document_id 
         LEFT JOIN document_access_log dal ON d.document_id = dal.document_id
         WHERE dt.doctype_id = ?
-        ORDER BY d.document_id
     ";
 
     $select_stmt = $dblink->prepare($select_query);
@@ -297,10 +348,7 @@ function get_by_doctype($dblink, $doctype_id) {
             return null;
         }
 
-        $docs = [];
-        while ($row = $result->fetch_assoc()) {
-            $docs[] = $row;
-        }
+        $docs = $result->fetch_all(MYSQLI_ASSOC);
 
         if ($result) {
             $result->free();

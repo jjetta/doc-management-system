@@ -29,6 +29,12 @@
                     <div class="alert alert-info">
                         <a href="search_loan_id.php">Search by Loan ID</a>
                     </div>
+                    <div class="alert alert-info">
+                        <a href="search_date.php">Search by Date</a>
+                    </div>
+                    <div class="alert alert-info">
+                        <a href="search_all.php">List All Files</a>
+                    </div>
                 </div>
             </div>
         </div>
