@@ -164,7 +164,9 @@ function get_or_create_loan($dblink, $loan_number) {
 function get_pending_docs($dblink) {
 
     $select_query = "
-        SELECT d.document_id, l.loan_number, d.doc_name, d.uploaded_at
+        SELECT 
+            d.document_id, 
+            CONCAT(l.loan_number, '-', d.doc_name, '-', DATE_FORMAT(d.uploaded_at, '%Y%m%d_%H_%i_%s'), '.pdf') AS filename
         FROM documents d
         JOIN loans l ON d.loan_id = l.loan_id
         JOIN document_statuses s ON d.document_id = s.document_id
@@ -193,9 +195,7 @@ function get_pending_docs($dblink) {
 
         $pending_docs = [];
         while ($row = $result->fetch_assoc()) {
-            $uploaded_at = date('Ymd_H_i_s', strtotime($row['uploaded_at']));
-            $filename = "{$row['loan_number']}-{$row['doc_name']}-{$uploaded_at}.pdf";
-            $pending_docs[$row['document_id']] = $filename ;
+            $pending_docs[$row['document_id']] = $row['filename'] ;
         }
 
         return $pending_docs;
@@ -252,6 +252,7 @@ function get_by_doctype($dblink, $doctype_id) {
 
     $select_query = "
         SELECT
+            d.document_id,
             l.loan_number,
             CONCAT(l.loan_number, '-', d.doc_name, '-', DATE_FORMAT(d.uploaded_at, '%Y%m%d_%H_%i_%s'), '.pdf') AS filename,
             dc.size,
@@ -466,5 +467,72 @@ function get_session($dblink) {
         return $latest_session_id;
     } finally {
         $select_stmt->close();
+    }
+}
+
+function get_file_content($dblink, $document_id) {
+    $query = "
+        SELECT
+            CONCAT(l.loan_number, '-', d.doc_name, '-', DATE_FORMAT(d.uploaded_at, '%Y%m%d_%H_%i_%s'), '.pdf') AS filename,
+            l.loan_number,
+            dc.content,
+            dc.size,
+            dal.last_accessed_at
+        FROM documents d
+        JOIN loans l ON d.loan_id = l.loan_id
+        LEFT JOIN document_contents dc ON d.document_id = dc.document_id 
+        LEFT JOIN document_access_log dal ON d.document_id = dal.document_id
+        WHERE d.document_id = ?;
+    ";
+    $stmt = $dblink->prepare($query);
+    if (!$stmt) {
+        log_message("[DB ERROR][get_file_content] Failed to prepare SELECT statement - " . $dblink->error);
+        return null;
+    }
+
+    try {
+        $stmt->bind_param('i', $document_id);
+        if (!$stmt->execute()) {
+            log_message("[DB ERROR][get_file_content] Failed to execute SELECT statement - " . $dblink->error);
+            return null;
+        }
+
+        $result = $stmt->get_result();
+        if (!$result) {
+            log_message("[DB ERROR][get_file_content] Failed to get result - " . $dblink->error);
+            return null;
+        }
+
+        $document = $result->fetch_assoc();
+
+        if ($result) {
+            $result->free();
+        }
+
+        return $document;
+    } finally {
+        $stmt->close();
+    }
+}
+
+function update_last_access($dblink, $document_id) {
+    $query = "
+        UPDATE document_access_log
+        SET last_accessed_at = NOW()
+        WHERE document_id = ?
+    ";
+
+    $stmt = $dblink->prepare($query);
+    if (!$stmt) {
+        log_message("[DB ERROR][update_last_access] Failed to prepare SELECT statement - " . $dblink->error);
+    }
+
+    try {
+        $stmt->bind_param('i', $document_id);
+        if (!$stmt->execute()) {
+            log_message("[DB ERROR][update_last_access] Failed to execute SELECT statement - " . $dblink->error);
+        }
+    } finally {
+        $stmt->close();
     }
 }

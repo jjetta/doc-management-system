@@ -58,10 +58,8 @@ $dblink = get_dblink();
                     <?php 
                         if (isset($_POST['submit']) && $_POST['submit'] === 'submit') {
                             $doctype_id = get_or_create_doctype($dblink, $_POST['docType']);
-                            echo "Submitted Type: " . $doctype . "<br>";
 
                             $documents = get_by_doctype($dblink, $doctype_id);
-                            echo "Resulting ID: " . $doctype_id . "<br>";
                             
                             echo '<hr>';
                             echo '<table class="table table-striped">';
@@ -85,7 +83,7 @@ $dblink = get_dblink();
                                     echo '<td>'.$data['size'].'</td>';
                                     echo '<td>'.$data['doctype'].'</td>';
                                     echo '<td>'.$data['last_accessed_at'].'</td>';
-                                    echo '<td>View</td>';
+                                    echo '<td><a href="search_view.php?fid='.$data['document_id'].'">View</a></td>';
                                     echo '</tr>';
                                 }
                             }
