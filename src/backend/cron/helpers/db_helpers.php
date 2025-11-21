@@ -205,12 +205,21 @@ function get_pending_docs($dblink) {
     }
 }
 
-function get_by_loan_id($dblink, $loan_id) {
+function get_by_loan_number($dblink, $loan_number) {
 
     $select_query = "
-        SELECT l.loan_number, d.doc_name, d.uploaded_at
+        SELECT
+            d.document_id,
+            l.loan_number,
+            CONCAT(l.loan_number, '-', d.doc_name, '-', DATE_FORMAT(d.uploaded_at, '%Y%m%d_%H_%i_%s'), '.pdf') AS filename,
+            dc.size,
+            dt.doctype,
+            dal.last_accessed_at
         FROM documents d
         JOIN loans l ON d.loan_id = l.loan_id
+        JOIN document_types dt ON d.doctype_id = dt.doctype_id
+        LEFT JOIN document_contents dc ON d.document_id = dc.document_id 
+        LEFT JOIN document_access_log dal ON d.document_id = dal.document_id
         WHERE l.loan_number = ?
         ORDER BY d.document_id
     ";
@@ -222,7 +231,7 @@ function get_by_loan_id($dblink, $loan_id) {
     }
 
     try {
-        $select_stmt->bind_param('i', $loan_id);
+        $select_stmt->bind_param('s', $loan_number);
         if (!$select_stmt->execute()) {
             log_message("[DB ERROR][get_by_loan_id] Failed to execute SELECT statement - " . $dblink->error);
             return null;
@@ -236,9 +245,11 @@ function get_by_loan_id($dblink, $loan_id) {
 
         $docs = [];
         while ($row = $result->fetch_assoc()) {
-            $uploaded_at = date('Ymd_H_i_s', strtotime($row['uploaded_at']));
-            $filename = "{$row['loan_number']}-{$row['doc_name']}-{$uploaded_at}.pdf";
-            $docs[] = $filename ;
+            $docs[] = $row;
+        }
+
+        if ($result) {
+            $result->free();
         }
 
         return $docs;
@@ -286,16 +297,17 @@ function get_by_doctype($dblink, $doctype_id) {
             return null;
         }
 
-        $documents = [];
+        $docs = [];
         while ($row = $result->fetch_assoc()) {
-            $documents[] = $row;
+            $docs[] = $row;
         }
 
         if ($result) {
             $result->free();
         }
 
-        return $documents;
+        return $docs;
+
     } finally {
         $select_stmt->close();
     }
