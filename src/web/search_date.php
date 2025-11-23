@@ -48,7 +48,7 @@ $dblink = get_dblink();
                             $date1 = $_POST['date1'];
                             $date2 = $_POST['date2'];
 
-                            $documents = get_by_date($dblink, $date1, $date2);
+                            $documents = search_by_date($dblink, $date1, $date2);
 
                             echo '<hr>';
                             echo '<table class="table table-striped">';

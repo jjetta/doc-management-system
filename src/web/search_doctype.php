@@ -59,7 +59,7 @@ $dblink = get_dblink();
                         if (isset($_POST['submit']) && $_POST['submit'] === 'submit') {
                             $doctype_id = get_or_create_doctype($dblink, $_POST['docType']);
 
-                            $documents = get_by_doctype($dblink, $doctype_id);
+                            $documents = search_by_doctype($dblink, $doctype_id);
                             
                             echo '<hr>';
                             echo '<table class="table table-striped">';

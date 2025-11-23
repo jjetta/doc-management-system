@@ -10,7 +10,7 @@ $script_name = basename(__FILE__);
 $start_time = time();
 $dblink = get_dblink();
 
-$sid = get_session($dblink);
+$sid = create_session();
 $username = getenv('API_USER');
 
 $downloaded = 0;
@@ -74,6 +74,7 @@ foreach ($pending_docs as $document_id => $filename) {
     log_message("");
 }
 
+close_session($sid);
 $elapsed = time() - $start_time;
 $total_docs = count($pending_docs);
 

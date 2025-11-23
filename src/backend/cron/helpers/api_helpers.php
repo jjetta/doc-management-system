@@ -7,8 +7,6 @@ define('API_URL', 'https://cs4743.professorvaladez.com/api/');
 
 $script_name = basename(__FILE__);
 
-$dblink = get_dblink();
-
 function api_call($endpoint, $data, $octet = false, $audit = false) {
     log_message("Calling endpoint: " . API_URL . $endpoint);
 
@@ -44,23 +42,20 @@ function api_call($endpoint, $data, $octet = false, $audit = false) {
         return false;
     }
 
+    log_message("[API_RESPONSE]");
     if ($audit) {
-        log_message("[API RESPONSE]");
         log_message($response_info[0]);
-        echo str_repeat("-", 100) . "\n";
-        return $response_info;
+    } else {
+        foreach ($response_info as $info) {
+            log_message($info);
+        }
     }
 
-    log_message("[API RESPONSE]");
-    foreach ($response_info as $info) {
-        log_message($info);
-    }
     echo str_repeat("-", 100) . "\n";
-
     return $response_info;
 }
 
-function create_session($dblink) {
+function create_session() {
 
     $data = http_build_query([
         'username' => getenv('API_USER'),
@@ -82,13 +77,23 @@ function create_session($dblink) {
 
     // Happy path at the bottom
     if ($response[0] === "Status: OK") {
-        db_save_session($dblink, $response[2]);
+        $session_id = $response[2];
+        return $session_id;
     } else {
         log_message("[FATAL] Session creation ultimately failed.");
     }
 }
 
-function reconnect($dblink) {
+function close_session($sid) {
+
+    $data = http_build_query([
+        'sid' => $sid
+    ]);
+
+    $response = api_call('close_session', $data);
+}
+
+function reconnect() {
 
     $data = http_build_query([
         'username' => getenv('API_USER'),
@@ -114,15 +119,6 @@ function reconnect($dblink) {
     }
 
     $session_id = $response[2];
-    try {
-        db_save_session($dblink, $session_id);
-    } catch (Exception $e){
-        log_message("[ERROR][RECONNECT] Failed to save session: " . $e->getMessage());
-        return [
-            'success' => false,
-            'sid' => null
-        ];
-    }
 
     log_message("[RECONNECT] Successfully re-established connection");
     return [

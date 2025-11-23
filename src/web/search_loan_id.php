@@ -45,7 +45,7 @@ $dblink = get_dblink();
                             $loan_number = trim($_POST['loan_number']);
 
                             if (ctype_digit($loan_number) && strlen($loan_number) == 9) {
-                                $documents = get_by_loan_number($dblink, $loan_number);
+                                $documents = search_by_loan_number($dblink, $loan_number);
                             } else {
                                 echo '<span class="help-block">Loan numbers must ONLY contain digits and be EXACTLY 9 digits long</span>';
                             }

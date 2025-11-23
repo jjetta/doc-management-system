@@ -10,7 +10,7 @@ $script_name = basename(__FILE__);
 $dblink = get_dblink();
 
 $username = getenv('API_USER');
-$sid = get_session($dblink); // sid = session id
+$sid = create_session(); // sid = session id
 
 $data = http_build_query([
     'uid' => $username,
@@ -53,32 +53,8 @@ if ($response[0] === 'Status: OK') {
 }
 
 log_message("[INFO] Processing files...");
-foreach ($files as $file) {
-    $file_parts = explode('-', $file);
-
-    // Validate filename format and type
-    if (count($file_parts) !== 3 || !str_ends_with($file, '.pdf')) {
-        log_message("Skipping invalid filename: $file");
-        continue;
-    }
-
-    [$loan_number, $docname, $timestamp] = $file_parts;
-
-    // Update document_types table if necessary
-    $doctype_id = get_or_create_doctype($dblink, $docname);
-
-    // Update loans table if necessary
-    $loan_id = get_or_create_loan($dblink, $loan_number);
-    if ($loan_id === null) {
-        log_message("[ERROR] Could not ensure loan exists for $loan_number");
-        continue;
-    }
-
-    // prepare the timestamp for insertion into the db
-    $mysql_ts = get_mysql_ts($timestamp);
-
-    // Update documents table with file metadata
-    save_file_metadata($dblink, $loan_id, $doctype_id, $mysql_ts, $docname);
-}
+process_files($dblink, $files);
 log_message("[INFO] Processing complete.");
+
+close_session($sid);
 echo str_repeat("-", 100) . "\n";

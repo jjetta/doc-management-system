@@ -10,7 +10,9 @@ $script_name = basename(__FILE__);
 $dblink = get_dblink();
 
 $username = getenv('API_USER');
-$sid = get_session($dblink); // sid = session id
+
+log_message("Creating session...");
+$sid = create_session(); // sid = session id
 
 $data = http_build_query([
     'uid' => $username,
@@ -22,11 +24,15 @@ $response = api_call('request_all_loans', $data, audit: true);
 if (!$response ||
     !is_array($response) ||
     $response[1] === 'MSG: SID not found') {
-    $retry = reconnect($dblink);
+    $retry = reconnect();
 
     if ($retry['success']) {
         log_message("[INFO] Retrying request_all_loans...");
         $sid = $retry['sid'];
+    } else {
+        log_message('Terminating script...');
+        echo str_repeat("-", 100) . "\n";
+        exit(1);
     }
 
     $data = http_build_query([
@@ -37,9 +43,8 @@ if (!$response ||
     $response = api_call('request_all_loans', $data, audit: true);
 }
 
-
 $all_generated_loans = parse_loan_list($response);
-$current_loans = get_current_loans($dblink);
+$current_loans = audit_loans($dblink);
 
 $missing_loans = array_diff($all_generated_loans, $current_loans);
 
@@ -57,5 +62,7 @@ if (!empty($missing_loans)) {
 } else {
     log_message("You're up to date on loans. All good!");
 }
+
+close_session($sid);
 
 echo str_repeat("-", 100) . "\n";

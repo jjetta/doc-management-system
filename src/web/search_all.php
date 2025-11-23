@@ -33,7 +33,7 @@ $dblink = get_dblink();
                 <div class="panel-heading">All Files</div>
                 <div class="panel-body">
                     <?php 
-                        $documents = get_all_docs($dblink);
+                        $documents = search_all_docs($dblink);
                         
                         echo '<hr>';
                         echo '<table class="table table-striped">';
