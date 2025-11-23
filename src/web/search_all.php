@@ -56,7 +56,7 @@ $dblink = get_dblink();
 
                                 echo '<tr>';
                                 echo '<td>'.$data['loan_number'].'</td>';
-                                echo '<td>'.$data['filename'].'</td>';
+                                echo '<td>'.$filename.'</td>';
                                 echo '<td>'.$data['size'].'</td>';
                                 echo '<td>'.$data['doctype'].'</td>';
                                 echo '<td>'. (isset($data['last_accessed_at']) ? $data['last_accessed_at'] : 'N/A') .'</td>';
