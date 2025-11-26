@@ -63,6 +63,7 @@ if (!empty($missing_loans)) {
     log_message("You're up to date on loans. All good!");
 }
 
+log_message("Closing session...");
 close_session($sid);
 
 echo str_repeat("-", 100) . "\n";

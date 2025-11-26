@@ -99,34 +99,32 @@ function get_mime_type($content) {
     return $mimetype;
 }
 
-function process_files($dblink, $files) {
+function process_file($dblink, $file) {
 
-    foreach ($files as $file) {
-        $file_parts = explode('-', $file);
+    $file_parts = explode('-', $file);
 
-        // Validate filename format and type
-        if (count($file_parts) !== 3 || !str_ends_with($file, '.pdf')) {
-            log_message("Skipping invalid filename: $file");
-            continue;
-        }
-
-        [$loan_number, $docname, $timestamp] = $file_parts;
-
-        // Update document_types table if necessary
-        $doctype = get_doctype_from_filename($docname);
-        $doctype_id = get_or_create_doctype($dblink, $doctype);
-
-        // Update loans table if necessary
-        $loan_id = get_or_create_loan($dblink, $loan_number);
-        if ($loan_id === null) {
-            log_message("[ERROR] Could not ensure loan exists for $loan_number");
-            continue;
-        }
-
-        // prepare the timestamp for insertion into the db
-        $mysql_ts = get_mysql_ts($timestamp);
-
-        // Update documents table with file metadata
-        save_file_metadata($dblink, $loan_id, $doctype_id, $mysql_ts, $docname);
+    // Validate filename format and type
+    if (count($file_parts) !== 3 || !str_ends_with($file, '.pdf')) {
+        log_message("Skipping invalid filename: $file");
+        return;
     }
+
+    [$loan_number, $docname, $timestamp] = $file_parts;
+
+    // Update document_types table if necessary
+    $doctype = get_doctype_from_filename($docname);
+    $doctype_id = get_or_create_doctype($dblink, $doctype);
+
+    // Update loans table if necessary
+    $loan_id = get_or_create_loan($dblink, $loan_number);
+    if ($loan_id === null) {
+        log_message("[ERROR] Could not ensure loan exists for $loan_number");
+        return;
+    }
+
+    // prepare the timestamp for insertion into the db
+    $mysql_ts = get_mysql_ts($timestamp);
+
+    // Update documents table with file metadata
+    save_file_metadata($dblink, $loan_id, $doctype_id, $mysql_ts, $docname);
 }

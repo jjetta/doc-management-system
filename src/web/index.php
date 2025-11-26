@@ -26,6 +26,8 @@
             </div>
             <div class="alert alert-info"><a href="search_main.php">Search Main</a>
             </div>
+            <div class="alert alert-info"><a href="report.php">View Report</a>
+            </div>
         </div>
     </div>
     </div>

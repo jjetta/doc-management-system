@@ -47,7 +47,7 @@ foreach ($pending_docs as $document_id => $filename) {
 
         if ($mime === "application/json") { //if we're getting json back from the api, we likely need to create another session
             log_message("[INFO] Detected possible session expiration. Attempting to reconnect...");
-            $retry = reconnect($dblink);
+            $retry = reconnect();
 
             if ($retry['success']) {
                 $sid = $retry['sid'];
@@ -74,8 +74,8 @@ foreach ($pending_docs as $document_id => $filename) {
     log_message("");
 }
 
-close_session($sid);
 $elapsed = time() - $start_time;
+close_session($sid);
 $total_docs = count($pending_docs);
 
 echo str_repeat("-", 100) . "\n";

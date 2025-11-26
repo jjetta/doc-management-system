@@ -112,7 +112,7 @@ function save_file_metadata($dblink, $loan_id, $doctype_id, $mysql_ts, $docname)
         log_message("[save_file_metadata] Metadata saved for document #$dblink->insert_id");
         return $dblink->insert_id;
     } finally {
-            $stmt->close();
+        $stmt->close();
     }
 }
 

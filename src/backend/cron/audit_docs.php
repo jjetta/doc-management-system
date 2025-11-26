@@ -24,7 +24,7 @@ $response = api_call('request_all_documents', $data, audit: true);
 if (!$response ||
     !is_array($response) ||
     $response[1] === 'MSG: SID not found') {
-    $retry = reconnect($dblink);
+    $retry = reconnect();
 
     if ($retry['success']) {
         log_message("[INFO] Retrying request_all_documents...");
@@ -52,7 +52,9 @@ if (!empty($missing_docs)) {
     log_message("Number of missing docs: " . count($missing_docs));
     log_message("Missing docs: " . print_r($missing_docs, true));
 
-    process_files($dblink, $missing_docs);
+    foreach ($missing_docs as $missing_doc) {
+        process_file($dblink, $missing_doc);
+    }
 } else {
     log_message("You're up to date on docs. All good!");
 }

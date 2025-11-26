@@ -23,7 +23,7 @@ $response = api_call('query_files', $data);
 if (!$response || 
     !is_array($response) || 
     $response[1] === 'MSG: SID not found') {
-    $retry = reconnect($dblink);
+    $retry = reconnect();
 
     if ($retry['success']) {
         log_message("[INFO] Retrying query_files...");
@@ -53,7 +53,9 @@ if ($response[0] === 'Status: OK') {
 }
 
 log_message("[INFO] Processing files...");
-process_files($dblink, $files);
+foreach ($files as $file) {
+    process_file($dblink, $file);
+}
 log_message("[INFO] Processing complete.");
 
 close_session($sid);
