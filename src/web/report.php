@@ -7,7 +7,6 @@ require_once __DIR__ . '/../backend/cron/helpers/reporting_helpers.php';
 $script_name = basename(__FILE__);
 $dblink = get_dblink();
 
-$total = total_number_of_loans($dblink);
 ?>
 
 <!doctype html>
@@ -26,8 +25,7 @@ $total = total_number_of_loans($dblink);
     margin-bottom:40px;
 }
 
-.main-box panel-body {
-    display: inline-block;
+.panel-body {
     text-align: left;
     max-width: 800px;
 }
@@ -42,7 +40,20 @@ $total = total_number_of_loans($dblink);
                 <div class="panel-heading">Report</div>
                     <div class="panel-body">
                     <?php
-                        echo "<h4>Total Number of Loans: $total";
+                        $number_of_loans = total_number_of_loans($dblink);
+                        echo "<h5>Total Number of Loans: $number_of_loans</h5>";
+                        echo '<hr>';
+                    ?>
+                    <?php
+                        $all_loans = get_all_loan_numbers($dblink);
+                        foreach ($all_loans as $loan) {
+                            echo "$loan<br>";
+                        }
+                    ?>
+                    <?php
+                        $sizes = get_size_across_loans($dblink);
+                        echo "<h5>Total Size of All Docs: " . format_bytes($sizes['total_size']);
+                        echo "<h5>Avg Size Across All Loans: " . format_bytes($sizes['avg_size_per_loan']);
                     ?>
                     </div>
             </div>
