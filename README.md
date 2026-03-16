@@ -13,10 +13,6 @@ The system automates the workflow of retrieving, organizing, and storing loan-re
   * The system runs on an AWS EC2 instance with two vCPUs, and 30 GB of storage.
   * The virtual machine is running Ubuntu Linux.
 
-* **API Session Management**
-
-  * Handles creation and tracking of API sessions. (with timestamps!)
-
 * **Document Processing**
 
   * Available documents are queried from an external API and stored in the database with a default status of `pending`.
